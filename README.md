@@ -1,73 +1,220 @@
-# .
+# CMS Widgets Micro Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+A Micro Frontend architecture built with **Vue 3** and **Vite** to optimize the development, build, and distribution of multiple widgets used within a CMS.
 
-## Recommended IDE Setup
+## Overview
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+This project explores an approach for managing multiple Vue.js widgets from a single frontend project and distributing them through an optimized bundle.
 
-## Recommended Browser Setup
+The main goal is to simplify the current widget generation and release process while improving maintainability, consistency, and developer experience.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Problem
 
-## Type Support for `.vue` Imports in TS
+When multiple widgets are developed independently, each widget may require its own build configuration and release process.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+As the number of widgets grows, this can introduce:
 
-## Customize configuration
+- Multiple build configurations
+- Repeated dependencies and configuration
+- More complex release processes
+- Increased maintenance overhead
+- Longer and more difficult deployments
+- Greater risk of inconsistencies between widgets
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Proposed Solution
 
-## Project Setup
+This project proposes a **Micro Frontend architecture** where multiple widgets can be developed and managed within a single project.
 
-```sh
-npm install
+The application will generate an optimized distribution that allows the widgets to be consumed independently by the CMS while sharing a common development and build environment.
+
+### Main goals
+
+- Centralize widget development.
+- Simplify the build process.
+- Reduce duplicated configuration.
+- Optimize the generated bundles.
+- Keep widgets isolated and reusable.
+- Establish a consistent development workflow.
+- Introduce automated testing.
+- Integrate analytics through Google Tag Manager.
+- Establish a foundation for CI/CD and automated releases.
+
+## Architecture
+
+The initial architecture is based on:
+
+```text
+                    CMS
+                     │
+                     ▼
+            ┌─────────────────┐
+            │  Widget Bundle  │
+            └─────────────────┘
+                     │
+        ┌────────────┼────────────┐
+        ▼            ▼            ▼
+   ┌─────────┐  ┌─────────┐  ┌─────────┐
+   │ Widget A│  │ Widget B│  │ Widget C│
+   └─────────┘  └─────────┘  └─────────┘
+        │            │            │
+        └────────────┼────────────┘
+                     ▼
+              Shared Runtime
 ```
 
-### Compile and Hot-Reload for Development
+The architecture may evolve as the project progresses and different integration strategies are evaluated.
 
-```sh
-npm run dev
+## Tech Stack
+
+### Core
+
+- [Vue 3](https://vuejs.org/)
+- [Vite](https://vite.dev/)
+- TypeScript
+- JavaScript
+
+### Styling
+
+- [Tailwind CSS](https://tailwindcss.com/)
+
+### Testing
+
+- Unit testing
+- Component testing
+- End-to-end testing
+
+Potential tools:
+
+- Vitest
+- Vue Test Utils
+- Playwright
+
+### Analytics
+
+- Google Tag Manager
+
+### Code Quality
+
+- ESLint
+- Prettier
+- Husky
+- lint-staged
+
+### Deployment
+
+The project will evaluate an automated CI/CD workflow for building and distributing the widgets.
+
+Potential deployment platforms:
+
+- Vercel
+- Netlify
+- Azure DevOps
+
+## Project Structure
+
+The project will be organized to keep widgets isolated while allowing them to share common configuration, utilities, components, and dependencies.
+
+```text
+src/
+├── widgets/
+│   ├── widget-a/
+│   ├── widget-b/
+│   └── widget-c/
+│
+├── components/
+├── composables/
+├── services/
+├── utils/
+└── main.ts
 ```
 
-### Type-Check, Compile and Minify for Production
+The final structure may change as the architecture is validated.
 
-```sh
-npm run build
+## Build & Release
+
+One of the main objectives is to improve the current release workflow.
+
+Instead of treating every widget as a completely independent project, the build process will be responsible for generating the required distribution artifacts from a centralized codebase.
+
+The project will investigate:
+
+- Bundle optimization
+- Code splitting
+- Shared dependencies
+- Tree shaking
+- Cache optimization
+- Environment-specific configuration
+- Automated builds
+- Automated releases
+
+## Testing Strategy
+
+Testing is an important part of the project rather than an additional step after development.
+
+The testing strategy will cover different levels:
+
+```text
+Unit Tests
+    │
+    ▼
+Component Tests
+    │
+    ▼
+Integration Tests
+    │
+    ▼
+End-to-End Tests
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+The objective is to ensure that individual widgets can evolve without introducing regressions in other widgets.
 
-```sh
-npm run test:unit
-```
+## Analytics
 
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
+Google Tag Manager will be integrated as an example of how cross-cutting functionality can be handled within the widget architecture.
 
-```sh
-# Install browsers for the first run
-npx playwright install
+The implementation will explore:
 
-# When testing on CI, must build the project first
-npm run build
+- Event tracking
+- Data Layer integration
+- Environment-specific configuration
+- Avoiding duplicated analytics initialization
+- Tracking interactions across widgets
 
-# Runs the end-to-end tests
-npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
-```
+## Development Goals
 
-### Lint with [ESLint](https://eslint.org/)
+This project is also intended as a practical exploration of modern frontend architecture and development practices.
 
-```sh
-npm run lint
-```
+The main areas of focus are:
+
+- Micro Frontend architecture
+- Vue 3
+- Vite
+- TypeScript
+- Tailwind CSS
+- Automated testing
+- Code quality
+- Analytics
+- CI/CD
+- Build optimization
+- Release automation
+
+## Future Improvements
+
+Possible future iterations include:
+
+- Dynamic widget loading
+- Improved dependency sharing
+- Independent widget versioning
+- Automated semantic versioning
+- CI/CD pipelines
+- Automated deployments
+- Performance monitoring
+- Error tracking
+- Advanced caching strategies
+- CMS integration testing
+
+## Status
+
+🚧 **Work in progress**
+
+This project is currently being developed and the architecture may evolve as different approaches are evaluated and validated.

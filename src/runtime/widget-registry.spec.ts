@@ -115,7 +115,7 @@ describe('widget registry', () => {
         name: '   ',
         module: mockWidgetModule,
       })
-    }).toThrow()
+    }).toThrow('Widget name cannot be empty.')
   })
 
   it('rejects empty names in a batch without registering any widget', () => {
@@ -146,7 +146,7 @@ describe('widget registry', () => {
         name: ' calculator ',
         module: mockWidgetModule,
       })
-    }).toThrow()
+    }).toThrow('Widget with name "calculator" is already registered.')
   })
 
   it('rejects duplicate names with surrounding whitespace in a batch', () => {

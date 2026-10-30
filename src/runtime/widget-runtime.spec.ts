@@ -3,8 +3,7 @@
 // Además, elimina los imports dinámicos (await import(...)) y usa los imports estáticos del inicio. Así el archivo será más fácil de mantener.
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WidgetInstance, WidgetModule } from './widget-contract'
-import { registerWidget } from './widget-registry'
-import { getMountedWidgets, mountWidget, unmountAllWidgets } from './widget-runtime'
+import { getMountedWidgets, mountWidget } from './widget-runtime'
 
 describe('widget runtime', () => {
   beforeEach(() => {

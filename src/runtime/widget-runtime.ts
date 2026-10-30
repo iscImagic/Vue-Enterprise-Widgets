@@ -58,7 +58,7 @@ export function getMountedWidgets(): MountedWidget[] {
 export function unmountAllWidgets(): void {
   const errors: unknown[] = []
 
-  for (const widget of [...mountedWidgets]) {
+  for (const widget of mountedWidgets) {
     try {
       widget.unmount()
     } catch (error) {

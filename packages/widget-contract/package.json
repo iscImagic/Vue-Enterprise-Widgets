@@ -1,0 +1,19 @@
+{
+  "name": "@cms-widget-platform/widget-contract",
+  "version": "1.0.0",
+  "description": "Public integration contract for CMS widgets",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

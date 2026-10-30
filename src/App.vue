@@ -1,17 +1,56 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
+import { registerWidgets } from './runtime/register-widgets'
+import { mountWidget } from './runtime/widget-runtime'
+
+const calculatorOne = ref<HTMLElement | null>(null)
+const calculatorTwo = ref<HTMLElement | null>(null)
+
+const cleanups: Array<() => void> = []
+
+onMounted(async () => {
+  try {
+    await registerWidgets()
+
+    if (calculatorOne.value) {
+      cleanups.push(
+        mountWidget('calculator', calculatorOne.value, {
+          config: { initialValue: 10 },
+        }),
+      )
+    }
+
+    if (calculatorTwo.value) {
+      cleanups.push(
+        mountWidget('calculator', calculatorTwo.value, {
+          config: { initialValue: 100 },
+        }),
+      )
+    }
+  } catch (error) {
+    console.error('Failed to initialize widgets:', error)
+  }
+})
+
+onUnmounted(() => {
+  for (const cleanup of cleanups) {
+    cleanup()
+  }
+})
+</script>
 
 <template>
-  <div class="bg-background p-8">
-    <div class="bg-surface border border-border rounded-lg p-6">
-      <h1 class="text-text text-2xl font-bold">Vue Enterprise Widgets</h1>
+  <main class="mx-auto max-w-xl space-y-8 p-8">
+    <h1 class="text-2xl font-bold">CMS Widget Platform</h1>
 
-      <p class="text-text-muted mt-2">Micro Frontend architecture with Vue 3 and Vite.</p>
+    <section>
+      <h2 class="mb-3 text-lg font-semibold">Calculadora 1</h2>
+      <div ref="calculatorOne"></div>
+    </section>
 
-      <button class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg mt-4">
-        Continue
-      </button>
-    </div>
-  </div>
+    <section>
+      <h2 class="mb-3 text-lg font-semibold">Calculadora 2</h2>
+      <div ref="calculatorTwo"></div>
+    </section>
+  </main>
 </template>
-
-<style scoped></style>

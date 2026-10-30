@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "widgets": [
+    {
+      "name": "calculator",
+      "description": "Calculadora de suma",
+      "entry": "/widgets/calculator.js"
+    },
+    {
+      "name": "contact-form",
+      "description": "Formulario de contacto",
+      "entry": "/widgets/contact-form.js"
+    },
+    {
+      "name": "external-contact-widget",
+      "description": "Formulario de contacto desarrollado en un proyecto externo",
+      "entry": "/widgets/external-contact-widget.js"
+    },
+    {
+      "name": "external-react-widget",
+      "description": "Formulario de contacto desarrollado con React en un proyecto independiente",
+      "entry": "/widgets/external-react-widget.js"
+    }
+  ]
+}

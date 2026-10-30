@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMS Widget Platform - Demo automática</title>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "vue": "https://unpkg.com/vue@3.5.43/dist/vue.esm-browser.prod.js"
+        }
+      }
+    </script>
+
+    <style>
+      body {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px;
+        font-family: Arial, sans-serif;
+      }
+
+      .widgets-container {
+        display: grid;
+        gap: 24px;
+        margin-top: 24px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Demo de widgets externos</h1>
+
+    <main class="widgets-container">
+      <section>
+        <h2>Calculadora 1</h2>
+        <div data-widget="calculator" data-widget-config='{"initialValue":10}'></div>
+      </section>
+
+      <section>
+        <h2>Calculadora 2</h2>
+        <div data-widget="calculator" data-widget-config='{"initialValue":100}'></div>
+      </section>
+
+      <section>
+        <div data-widget="contact-form"></div>
+      </section>
+      <section>
+        <div data-widget="external-contact-widget"></div>
+      </section>
+      <section>
+        <div data-widget="external-react-widget"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { registerWidgets } from './src/runtime/register-widgets.ts'
+      import { autoMountWidgets } from './src/runtime/widget-auto-mount.ts'
+
+      await registerWidgets()
+      const cleanups = autoMountWidgets()
+
+      window.addEventListener(
+        'pagehide',
+        () => {
+          for (const cleanup of cleanups) {
+            cleanup()
+          }
+        },
+        { once: true },
+      )
+    </script>
+  </body>
+</html>

@@ -40,3 +40,9 @@ __screenshots__/
 
 test-results/
 playwright-report/
+
+# Generated contract declarations
+packages/widget-contract/dist/
+
+# Locally packed contract package
+cms-widget-platform-widget-contract-1.0.0.tgz

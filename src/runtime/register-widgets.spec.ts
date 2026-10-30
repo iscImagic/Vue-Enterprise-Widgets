@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { WidgetModule } from './widget-contract'
 
 const { loadWidgetMock, loadWidgetManifestMock, registerWidgetsBatchMock } = vi.hoisted(() => ({
-  loadWidgetMock: vi.fn(),
-  loadWidgetManifestMock: vi.fn(),
-  registerWidgetsBatchMock: vi.fn(),
+  loadWidgetMock: vi.fn<typeof import('./widget-loader').loadWidget>(),
+  loadWidgetManifestMock: vi.fn<typeof import('./load-widget-manifest').loadWidgetManifest>(),
+  registerWidgetsBatchMock: vi.fn<typeof import('./widget-registry').registerWidgetsBatch>(),
 }))
 
 vi.mock('./widget-loader', () => ({
@@ -37,7 +38,7 @@ describe('registerWidgets', () => {
   })
 
   it('loads all widgets before registering them', async () => {
-    const calculatorModule = { mount: vi.fn() }
+    const calculatorModule = { mount: vi.fn<WidgetModule['mount']>() }
 
     loadWidgetMock.mockResolvedValue(calculatorModule)
 
@@ -79,7 +80,7 @@ describe('registerWidgets', () => {
   })
 
   it('loads the manifest from a custom URL', async () => {
-    loadWidgetMock.mockResolvedValue({ mount: vi.fn() })
+    loadWidgetMock.mockResolvedValue({ mount: vi.fn<WidgetModule['mount']>() })
 
     await registerWidgets('https://example.com/widgets/manifest.json')
 
@@ -87,7 +88,7 @@ describe('registerWidgets', () => {
   })
 
   it('uses the default manifest URL when no URL is provided', async () => {
-    loadWidgetMock.mockResolvedValue({ mount: vi.fn() })
+    loadWidgetMock.mockResolvedValue({ mount: vi.fn<WidgetModule['mount']>() })
 
     await registerWidgets()
 

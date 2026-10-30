@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { registerWidgetsMock } = vi.hoisted(() => ({
-  registerWidgetsMock: vi.fn(),
+  registerWidgetsMock: vi.fn<typeof import('../runtime/register-widgets').registerWidgets>(),
 }))
 
 vi.mock('../runtime/register-widgets', () => ({

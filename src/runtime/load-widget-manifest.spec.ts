@@ -22,7 +22,7 @@ describe('loadWidgetManifest', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: vi.fn().mockResolvedValue(manifest),
+        json: vi.fn<() => Promise<unknown>>().mockResolvedValue(manifest),
       }),
     )
 
@@ -35,7 +35,7 @@ describe('loadWidgetManifest', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: vi.fn().mockResolvedValue({
+        json: vi.fn<() => Promise<unknown>>().mockResolvedValue({
           version: '1.0.0',
           widgets: [],
         }),
@@ -67,7 +67,7 @@ describe('loadWidgetManifest', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: vi.fn().mockResolvedValue({
+        json: vi.fn<() => Promise<unknown>>().mockResolvedValue({
           version: '',
           widgets: [],
         }),
@@ -82,7 +82,7 @@ describe('loadWidgetManifest', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: vi.fn().mockResolvedValue({
+        json: vi.fn<() => Promise<unknown>>().mockResolvedValue({
           version: ' ',
           widgets: [],
         }),

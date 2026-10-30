@@ -2,7 +2,7 @@
 // Para evitar esa complejidad innecesaria, te recomiendo usar una versión más sencilla y robusta: agrega una función para limpiar el registro solo para pruebas, o, mejor aún, registra nombres únicos y no reinicies los módulos. Para mantener este paso simple, elimina beforeEach y vi.resetModules() y utiliza nombres únicos en cada prueba.
 // Además, elimina los imports dinámicos (await import(...)) y usa los imports estáticos del inicio. Así el archivo será más fácil de mantener.
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { WidgetModule } from './widget-contract'
+import type { WidgetInstance, WidgetModule } from './widget-contract'
 import { registerWidget } from './widget-registry'
 import { getMountedWidgets, mountWidget, unmountAllWidgets } from './widget-runtime'
 
@@ -12,8 +12,8 @@ describe('widget runtime', () => {
   })
 
   it('mounts a registered widget', async () => {
-    const mount = vi.fn(() => ({
-      unmount: vi.fn(),
+    const mount = vi.fn<WidgetModule['mount']>(() => ({
+      unmount: vi.fn<WidgetInstance['unmount']>(),
     }))
 
     const { registerWidget: register } = await import('./widget-registry')
@@ -42,8 +42,8 @@ describe('widget runtime', () => {
   })
 
   it('unmounts a mounted widget when cleanup is called', async () => {
-    const unmount = vi.fn()
-    const mount = vi.fn(() => ({ unmount }))
+    const unmount = vi.fn<WidgetInstance['unmount']>()
+    const mount = vi.fn<WidgetModule['mount']>(() => ({ unmount }))
 
     const { registerWidget: register } = await import('./widget-registry')
     const { mountWidget: mountRuntimeWidget } = await import('./widget-runtime')
@@ -62,8 +62,8 @@ describe('widget runtime', () => {
   })
 
   it('removes a widget from the registry when it is unmounted', async () => {
-    const unmount = vi.fn()
-    const mount = vi.fn(() => ({ unmount }))
+    const unmount = vi.fn<WidgetInstance['unmount']>()
+    const mount = vi.fn<WidgetModule['mount']>(() => ({ unmount }))
 
     const { registerWidget: register } = await import('./widget-registry')
     const { mountWidget: mountRuntimeWidget, getMountedWidgets: getMounted } =
@@ -85,8 +85,8 @@ describe('widget runtime', () => {
   })
 
   it('unmounts all currently mounted widgets', async () => {
-    const unmountFirst = vi.fn()
-    const unmountSecond = vi.fn()
+    const unmountFirst = vi.fn<WidgetInstance['unmount']>()
+    const unmountSecond = vi.fn<WidgetInstance['unmount']>()
 
     const { registerWidget: register } = await import('./widget-registry')
     const { mountWidget: mountRuntimeWidget, unmountAllWidgets: unmountAll } =
@@ -124,7 +124,7 @@ describe('widget runtime', () => {
     register({
       name: 'runtime-duplicate-element',
       module: {
-        mount: () => ({ unmount: vi.fn() }),
+        mount: () => ({ unmount: vi.fn<WidgetInstance['unmount']>() }),
       },
     })
 
@@ -202,10 +202,10 @@ describe('widget runtime', () => {
       unmountAllWidgets: unmountAll,
     } = await import('./widget-runtime')
 
-    const failingUnmount = vi.fn(() => {
+    const failingUnmount = vi.fn<WidgetInstance['unmount']>(() => {
       throw new Error('First widget failed')
     })
-    const successfulUnmount = vi.fn()
+    const successfulUnmount = vi.fn<WidgetInstance['unmount']>()
 
     register({
       name: 'runtime-bulk-failing',
@@ -261,7 +261,7 @@ describe('widget runtime', () => {
       module: {
         mount: (element) => {
           element.append(document.createElement('span'))
-          return { unmount: vi.fn() }
+          return { unmount: vi.fn<WidgetInstance['unmount']>() }
         },
       },
     })
@@ -276,7 +276,7 @@ describe('widget runtime', () => {
 
   it('cleans up the widget when cleanup is called', async () => {
     const element = document.createElement('div')
-    const unmount = vi.fn(() => {
+    const unmount = vi.fn<WidgetInstance['unmount']>(() => {
       element.replaceChildren()
     })
 

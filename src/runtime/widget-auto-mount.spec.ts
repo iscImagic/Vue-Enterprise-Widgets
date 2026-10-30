@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { autoMountWidgets } from './widget-auto-mount'
 import { clearWidgetRegistry, registerWidget } from './widget-registry'
-import type { WidgetModule } from './widget-contract'
+import type { WidgetInstance, WidgetModule } from './widget-contract'
 
 function createWidget(): WidgetModule {
   return {
-    mount: vi.fn(() => ({
-      unmount: vi.fn(),
+    mount: vi.fn<WidgetModule['mount']>(() => ({
+      unmount: vi.fn<WidgetInstance['unmount']>(),
     })),
   }
 }
@@ -47,10 +47,10 @@ describe('autoMountWidgets', () => {
   })
 
   it('cleans up previously mounted widgets if a later mount fails', () => {
-    const unmount = vi.fn()
+    const unmount = vi.fn<WidgetInstance['unmount']>()
     const module: WidgetModule = {
       mount: vi
-        .fn()
+        .fn<WidgetModule['mount']>()
         .mockReturnValueOnce({ unmount })
         .mockImplementationOnce(() => {
           throw new Error('Mount failed')

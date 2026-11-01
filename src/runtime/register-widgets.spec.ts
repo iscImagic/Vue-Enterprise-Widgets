@@ -32,6 +32,7 @@ describe('registerWidgets', () => {
           name: 'calculator',
           description: 'Calculadora de suma',
           entry: '/widgets/calculator.js',
+          styles: ['/widgets/calculator.css'],
         },
       ],
     })
@@ -50,6 +51,7 @@ describe('registerWidgets', () => {
       name: 'calculator',
       description: 'Calculadora de suma',
       entry: '/widgets/calculator.js',
+      styles: ['/widgets/calculator.css'],
     })
 
     expect(registerWidgetsBatchMock).toHaveBeenCalledTimes(1)
@@ -58,6 +60,7 @@ describe('registerWidgets', () => {
         name: 'calculator',
         description: 'Calculadora de suma',
         module: calculatorModule,
+        styles: ['/widgets/calculator.css'],
       },
     ])
   })

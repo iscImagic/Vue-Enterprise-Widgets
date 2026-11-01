@@ -12,9 +12,10 @@ import {
   withModifiers as u,
 } from 'vue'
 // src/ExternalContactForm.vue?vue&type=script&setup=true&lang.ts
-var d = { class: 'contact-widget' },
+var d = { class: 'ew-contact' },
   f = {
     key: 0,
+    class: 'ew-contact__success',
     role: 'status',
   },
   p = /*#__PURE__*/ ((e, t) => {
@@ -35,11 +36,19 @@ var d = { class: 'contact-widget' },
         return (e, o) => (
           a(),
           n('section', d, [
-            (o[7] ||= r('h2', null, 'Contact us', -1)),
-            (o[8] ||= r('p', null, 'External widget built by an independent team.', -1)),
+            (o[7] ||= r('h2', { class: 'ew-contact__title' }, 'Contact us', -1)),
+            (o[8] ||= r(
+              'p',
+              { class: 'ew-contact__description' },
+              ' External widget built by an independent team. ',
+              -1,
+            )),
             r(
               'form',
-              { onSubmit: u(g, ['prevent']) },
+              {
+                class: 'ew-contact__form',
+                onSubmit: u(g, ['prevent']),
+              },
               [
                 (o[3] ||= r('label', { for: 'external-name' }, 'Name', -1)),
                 l(
@@ -48,6 +57,7 @@ var d = { class: 'contact-widget' },
                     {
                       id: 'external-name',
                       'onUpdate:modelValue': (o[0] ||= (e) => (i.value = e)),
+                      class: 'ew-contact__input',
                       required: '',
                       placeholder: 'Your name',
                     },
@@ -63,6 +73,7 @@ var d = { class: 'contact-widget' },
                     {
                       id: 'external-email',
                       'onUpdate:modelValue': (o[1] ||= (e) => (p.value = e)),
+                      class: 'ew-contact__input',
                       type: 'email',
                       required: '',
                       placeholder: 'you@example.com',
@@ -79,6 +90,7 @@ var d = { class: 'contact-widget' },
                     {
                       id: 'external-message',
                       'onUpdate:modelValue': (o[2] ||= (e) => (m.value = e)),
+                      class: 'ew-contact__input ew-contact__textarea',
                       required: '',
                       placeholder: 'How can we help?',
                     },
@@ -87,7 +99,15 @@ var d = { class: 'contact-widget' },
                   ),
                   [[c, m.value]],
                 ),
-                (o[6] ||= r('button', { type: 'submit' }, 'Send message', -1)),
+                (o[6] ||= r(
+                  'button',
+                  {
+                    class: 'ew-contact__button',
+                    type: 'submit',
+                  },
+                  ' Send message ',
+                  -1,
+                )),
               ],
               32,
             ),
@@ -99,7 +119,7 @@ var d = { class: 'contact-widget' },
         )
       },
     }),
-    [['__scopeId', 'data-v-5e4fa287']],
+    [['__scopeId', 'data-v-d648d760']],
   ),
   m = {
     mount(t) {

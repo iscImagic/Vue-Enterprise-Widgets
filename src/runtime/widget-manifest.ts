@@ -2,6 +2,7 @@ export interface WidgetManifestEntry {
   name: string
   description?: string
   entry: string
+  styles?: string[]
 }
 
 export interface WidgetManifest {

@@ -1,0 +1,62 @@
+.contact-widget[data-v-d648d760] {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  max-width: 420px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+h2[data-v-d648d760] {
+  margin-top: 0;
+}
+form[data-v-d648d760] {
+  gap: 10px;
+  display: grid;
+}
+input[data-v-d648d760],
+textarea[data-v-d648d760],
+button[data-v-d648d760] {
+  box-sizing: border-box;
+  width: 100%;
+  font: inherit;
+  padding: 10px;
+}
+textarea[data-v-d648d760] {
+  resize: vertical;
+  min-height: 90px;
+}
+button[data-v-d648d760] {
+  cursor: pointer;
+}
+.ew-contact {
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  max-width: 420px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+.ew-contact__title {
+  margin-top: 0;
+}
+.ew-contact__form {
+  gap: 10px;
+  display: grid;
+}
+.ew-contact__input,
+.ew-contact__button {
+  box-sizing: border-box;
+  width: 100%;
+  font: inherit;
+  padding: 10px;
+}
+.ew-contact__textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+.ew-contact__button {
+  cursor: pointer;
+}
+.ew-contact__success {
+  color: green;
+}
+/*$vite$:1*/

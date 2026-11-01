@@ -14,7 +14,7 @@ onMounted(async () => {
 
     if (calculatorOne.value) {
       cleanups.push(
-        mountWidget('calculator', calculatorOne.value, {
+        await mountWidget('calculator', calculatorOne.value, {
           config: { initialValue: 10 },
         }),
       )
@@ -22,7 +22,7 @@ onMounted(async () => {
 
     if (calculatorTwo.value) {
       cleanups.push(
-        mountWidget('calculator', calculatorTwo.value, {
+        await mountWidget('calculator', calculatorTwo.value, {
           config: { initialValue: 100 },
         }),
       )

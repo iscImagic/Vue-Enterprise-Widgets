@@ -31,7 +31,7 @@ function getWidgetOptions(element: HTMLElement): WidgetMountOptions {
   return { config: config as Record<string, unknown> }
 }
 
-export function autoMountWidgets(root: ParentNode = document): Array<() => void> {
+export async function autoMountWidgets(root: ParentNode = document): Promise<Array<() => void>> {
   const elements = root.querySelectorAll<HTMLElement>('[data-widget]')
   const cleanups: Array<() => void> = []
 
@@ -41,7 +41,7 @@ export function autoMountWidgets(root: ParentNode = document): Array<() => void>
 
       if (!name) continue
 
-      const cleanup = mountWidget(name, element, getWidgetOptions(element))
+      const cleanup = await mountWidget(name, element, getWidgetOptions(element))
 
       cleanups.push(cleanup)
     }

@@ -14,6 +14,7 @@ export async function registerWidgets(manifestUrl?: string): Promise<void> {
       name: entry.name,
       description: entry.description,
       module,
+      styles: entry.styles,
     })
   }
 

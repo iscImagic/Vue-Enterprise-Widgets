@@ -4,6 +4,7 @@ export interface WidgetDefinition {
   name: string
   description?: string
   module: WidgetModule
+  styles?: string[]
 }
 
 const WidgetRegistry = new Map<string, WidgetDefinition>()

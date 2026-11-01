@@ -10,7 +10,7 @@ describe('widget runtime', () => {
     vi.resetModules()
   })
 
-  it('mounts a registered widget', async () => {
+  it('mounts a registered widget inside a Shadow DOM', async () => {
     const mount = vi.fn<WidgetModule['mount']>(() => ({
       unmount: vi.fn<WidgetInstance['unmount']>(),
     }))
@@ -27,15 +27,21 @@ describe('widget runtime', () => {
 
     const element = document.createElement('div')
 
-    mountRuntimeWidget('runtime-test-widget', element)
+    await mountRuntimeWidget('runtime-test-widget', element)
 
-    expect(mount).toHaveBeenCalledWith(element, undefined)
+    expect(element.shadowRoot).not.toBeNull()
+    expect(mount).toHaveBeenCalledOnce()
+
+    const container = mount.mock.calls[0]![0]
+
+    expect(container).toBeInstanceOf(HTMLElement)
+    expect(element.shadowRoot?.contains(container)).toBe(true)
   })
 
-  it('throws when the widget is not registered', () => {
+  it('throws when the widget is not registered', async () => {
     const element = document.createElement('div')
 
-    expect(() => mountWidget('missing-widget', element)).toThrow(
+    await expect(mountWidget('missing-widget', element)).rejects.toThrow(
       'Widget "missing-widget" is not registered.',
     )
   })
@@ -53,7 +59,7 @@ describe('widget runtime', () => {
     })
 
     const element = document.createElement('div')
-    const cleanup = mountRuntimeWidget('runtime-cleanup-widget', element)
+    const cleanup = await mountRuntimeWidget('runtime-cleanup-widget', element)
 
     cleanup()
 
@@ -73,7 +79,10 @@ describe('widget runtime', () => {
       module: { mount },
     })
 
-    const cleanup = mountRuntimeWidget('runtime-removal-widget', document.createElement('div'))
+    const cleanup = await mountRuntimeWidget(
+      'runtime-removal-widget',
+      document.createElement('div'),
+    )
 
     expect(getMounted().some((widget) => widget.name === 'runtime-removal-widget')).toBe(true)
 
@@ -101,8 +110,8 @@ describe('widget runtime', () => {
       module: { mount: () => ({ unmount: unmountSecond }) },
     })
 
-    mountRuntimeWidget('runtime-cleanup-first', document.createElement('div'))
-    mountRuntimeWidget('runtime-cleanup-second', document.createElement('div'))
+    await mountRuntimeWidget('runtime-cleanup-first', document.createElement('div'))
+    await mountRuntimeWidget('runtime-cleanup-second', document.createElement('div'))
 
     unmountAll()
 
@@ -129,9 +138,9 @@ describe('widget runtime', () => {
 
     const element = document.createElement('div')
 
-    const cleanup = mountRuntimeWidget('runtime-duplicate-element', element)
+    const cleanup = await mountRuntimeWidget('runtime-duplicate-element', element)
 
-    expect(() => mountRuntimeWidget('runtime-duplicate-element', element)).toThrow(
+    await expect(mountRuntimeWidget('runtime-duplicate-element', element)).rejects.toThrow(
       'An element cannot host more than one mounted widget.',
     )
 
@@ -154,11 +163,12 @@ describe('widget runtime', () => {
     })
 
     const element = document.createElement('div')
-    element.append(document.createElement('p'))
 
-    expect(() => mountRuntimeWidget('runtime-failing-widget', element)).toThrow('Mount failed')
+    await expect(mountRuntimeWidget('runtime-failing-widget', element)).rejects.toThrow(
+      'Mount failed',
+    )
 
-    expect(element.childElementCount).toBe(0)
+    expect(element.shadowRoot?.childElementCount).toBe(0)
     expect(getMounted().some((widget) => widget.name === 'runtime-failing-widget')).toBe(false)
   })
 
@@ -179,14 +189,14 @@ describe('widget runtime', () => {
     })
 
     const element = document.createElement('div')
-    const cleanup = mountRuntimeWidget('runtime-failing-unmount', element)
+    const cleanup = await mountRuntimeWidget('runtime-failing-unmount', element)
 
     expect(() => cleanup()).toThrow('Unmount failed')
 
     expect(getMounted().some((widget) => widget.name === 'runtime-failing-unmount')).toBe(false)
 
     // El mismo elemento debe poder reutilizarse.
-    const secondCleanup = mountRuntimeWidget('runtime-failing-unmount', element)
+    const secondCleanup = await mountRuntimeWidget('runtime-failing-unmount', element)
 
     // Evitamos que el segundo desmontaje fallido afecte esta prueba.
     expect(getMounted()).toHaveLength(1)
@@ -220,8 +230,8 @@ describe('widget runtime', () => {
       },
     })
 
-    mountRuntimeWidget('runtime-bulk-failing', document.createElement('div'))
-    mountRuntimeWidget('runtime-bulk-successful', document.createElement('div'))
+    await mountRuntimeWidget('runtime-bulk-failing', document.createElement('div'))
+    await mountRuntimeWidget('runtime-bulk-successful', document.createElement('div'))
 
     expect(() => unmountAll()).toThrow('One or more widgets failed to unmount.')
 
@@ -253,7 +263,9 @@ describe('widget runtime', () => {
 
     const element = document.createElement('div')
 
-    expect(() => mountRuntimeWidget('runtime-retry-widget', element)).toThrow('First mount failed')
+    await expect(mountRuntimeWidget('runtime-retry-widget', element)).rejects.toThrow(
+      'First mount failed',
+    )
 
     register({
       name: 'runtime-retry-success-widget',
@@ -265,9 +277,9 @@ describe('widget runtime', () => {
       },
     })
 
-    const cleanup = mountRuntimeWidget('runtime-retry-success-widget', element)
+    const cleanup = await mountRuntimeWidget('runtime-retry-success-widget', element)
 
-    expect(element.childElementCount).toBe(1)
+    expect(element.shadowRoot?.querySelector('div')?.childElementCount).toBe(1)
     expect(getMounted().some((widget) => widget.name === 'runtime-retry-success-widget')).toBe(true)
 
     cleanup()
@@ -275,9 +287,7 @@ describe('widget runtime', () => {
 
   it('cleans up the widget when cleanup is called', async () => {
     const element = document.createElement('div')
-    const unmount = vi.fn<WidgetInstance['unmount']>(() => {
-      element.replaceChildren()
-    })
+    const unmount = vi.fn<WidgetInstance['unmount']>()
 
     const { registerWidget: register } = await import('./widget-registry')
     const { mountWidget: mountRuntimeWidget } = await import('./widget-runtime')
@@ -292,13 +302,13 @@ describe('widget runtime', () => {
       },
     })
 
-    const cleanup = mountRuntimeWidget('runtime-dom-cleanup-widget', element)
+    const cleanup = await mountRuntimeWidget('runtime-dom-cleanup-widget', element)
 
-    expect(element.childElementCount).toBe(1)
+    expect(element.shadowRoot?.querySelector('div')?.childElementCount).toBe(1)
 
     cleanup()
 
     expect(unmount).toHaveBeenCalledOnce()
-    expect(element.childElementCount).toBe(0)
+    expect(element.shadowRoot?.childElementCount).toBe(0)
   })
 })

@@ -32,6 +32,15 @@ export function validateWidgetManifest(manifest: WidgetManifest): void {
       throw new Error(`Widget "${widget.name}" description must be a string.`)
     }
 
+    if (widget.styles !== undefined) {
+      if (
+        !Array.isArray(widget.styles) ||
+        !widget.styles.every((style) => typeof style === 'string' && style.trim().length > 0)
+      ) {
+        throw new Error(`Widget "${widget.name}" styles must be an array of non-empty strings.`)
+      }
+    }
+
     if (registeredNames.has(widget.name)) {
       throw new Error(`Duplicate widget name "${widget.name}" in manifest.`)
     }

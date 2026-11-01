@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS Widget Platform - Demo automática</title>
+    <style>
+      button {
+        background: red;
+        color: white;
+        font-size: 24px;
+      }
+
+      input {
+        border: 3px solid red;
+      }
+    </style>
 
     <script type="importmap">
       {
@@ -59,7 +70,7 @@
       import { autoMountWidgets } from './src/runtime/widget-auto-mount.ts'
 
       await registerWidgets()
-      const cleanups = autoMountWidgets()
+      const cleanups = await autoMountWidgets()
 
       window.addEventListener(
         'pagehide',

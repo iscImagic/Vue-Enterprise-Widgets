@@ -21,7 +21,7 @@ describe('autoMountWidgets', () => {
     document.body.innerHTML = ''
   })
 
-  it('mounts every element with data-widget', () => {
+  it('mounts every element with data-widget', async () => {
     const module = createWidget()
 
     registerWidget({
@@ -34,20 +34,23 @@ describe('autoMountWidgets', () => {
       <div data-widget="calculator" data-initial-value="100"></div>
     `
 
-    const cleanups = autoMountWidgets()
+    const cleanups = await autoMountWidgets()
 
     expect(module.mount).toHaveBeenCalledTimes(2)
     expect(cleanups).toHaveLength(2)
+
     expect(module.mount).toHaveBeenNthCalledWith(1, expect.any(HTMLElement), {
       config: { initialValue: 10 },
     })
+
     expect(module.mount).toHaveBeenNthCalledWith(2, expect.any(HTMLElement), {
       config: { initialValue: 100 },
     })
   })
 
-  it('cleans up previously mounted widgets if a later mount fails', () => {
+  it('cleans up previously mounted widgets if a later mount fails', async () => {
     const unmount = vi.fn<WidgetInstance['unmount']>()
+
     const module: WidgetModule = {
       mount: vi
         .fn<WidgetModule['mount']>()
@@ -67,17 +70,18 @@ describe('autoMountWidgets', () => {
       <div data-widget="calculator"></div>
     `
 
-    expect(() => autoMountWidgets()).toThrow('Mount failed')
+    await expect(autoMountWidgets()).rejects.toThrow('Mount failed')
+
     expect(unmount).toHaveBeenCalledTimes(1)
   })
 
-  it('ignores elements without a widget name', () => {
+  it('ignores elements without a widget name', async () => {
     document.body.innerHTML = '<div data-widget=""></div>'
 
-    expect(autoMountWidgets()).toEqual([])
+    await expect(autoMountWidgets()).resolves.toEqual([])
   })
 
-  it('uses JSON configuration from data-widget-config', () => {
+  it('uses JSON configuration from data-widget-config', async () => {
     const module = createWidget()
 
     registerWidget({
@@ -92,7 +96,7 @@ describe('autoMountWidgets', () => {
       ></div>
     `
 
-    autoMountWidgets()
+    await autoMountWidgets()
 
     expect(module.mount).toHaveBeenCalledWith(expect.any(HTMLElement), {
       config: {
@@ -102,22 +106,22 @@ describe('autoMountWidgets', () => {
     })
   })
 
-  it('throws when data-widget-config contains invalid JSON', () => {
+  it('throws when data-widget-config contains invalid JSON', async () => {
     document.body.innerHTML = `
       <div data-widget="calculator" data-widget-config="{invalid}"></div>
     `
 
-    expect(() => autoMountWidgets()).toThrow(
+    await expect(autoMountWidgets()).rejects.toThrow(
       'Invalid JSON in data-widget-config for widget "calculator".',
     )
   })
 
-  it('throws when data-widget-config is not a JSON object', () => {
+  it('throws when data-widget-config is not a JSON object', async () => {
     document.body.innerHTML = `
       <div data-widget="calculator" data-widget-config="[1,2,3]"></div>
     `
 
-    expect(() => autoMountWidgets()).toThrow(
+    await expect(autoMountWidgets()).rejects.toThrow(
       'The data-widget-config for widget "calculator" must be a JSON object.',
     )
   })

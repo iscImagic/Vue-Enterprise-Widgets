@@ -8,9 +8,9 @@ The project currently demonstrates integration between **Vue 3 and React** widge
 
 CMS Widget Platform explores an architecture for distributing reusable frontend widgets to content management systems such as Sitefinity and WordPress.
 
-The platform separates widget development from widget integration. Independent teams can build their widgets in separate projects, produce JavaScript bundles, and register them through a shared manifest.
+The platform separates widget development from widget integration. Independent teams can build their widgets in separate projects, produce JavaScript bundles and associated CSS files, and register them through a shared manifest.
 
-The runtime relies on a small public contract instead of depending directly on each widget's framework.
+The runtime relies on a small public contract instead of depending directly on each widget's framework. Each widget is mounted inside its own Shadow DOM to isolate its styles from the host page and other widgets.
 
 ## Problem
 
@@ -24,16 +24,18 @@ As the number of widgets grows, this can lead to:
 - Increased maintenance overhead.
 - Framework dependencies leaking into the central application.
 - Greater risk of regressions when introducing new widgets.
+- CSS conflicts between widgets and the host CMS.
 
 ## Proposed Solution
 
 The platform provides a shared runtime and a public widget contract that define how widgets integrate with their host environment.
 
-The architecture separates three responsibilities:
+The architecture separates four responsibilities:
 
 1. **Widget development:** teams implement widgets using their preferred frontend framework.
-2. **Widget distribution:** each team produces a JavaScript bundle that exposes the required public interface.
+2. **Widget distribution:** each team produces a JavaScript bundle and, when needed, separate CSS files.
 3. **Widget integration:** the central runtime discovers widgets through a manifest and manages their lifecycle.
+4. **Style isolation:** the runtime creates an independent Shadow DOM for each widget and loads its declared styles inside it.
 
 ### Main goals
 
@@ -42,6 +44,8 @@ The architecture separates three responsibilities:
 - Load widgets dynamically through a manifest.
 - Centralize widget registration and lifecycle management.
 - Support configuration through HTML attributes and JSON.
+- Isolate widget styles using Shadow DOM.
+- Load CSS resources through manifest configuration.
 - Validate widget registrations and handle mounting failures.
 - Provide automated tests for runtime behavior.
 - Establish a foundation for independent versioning and automated releases.
@@ -49,28 +53,37 @@ The architecture separates three responsibilities:
 ## Architecture
 
 ```text
-                 CMS / Host Page
-                        |
-                        v
-                Widget Manifest
-                        |
-                        v
-                 Shared Runtime
-                        |
-              +---------+---------+
-              |         |         |
-              v         v         v
-          Vue Widget  React     Other
-                      Widget   Frameworks
-              |         |         |
-              +---------+---------+
-                        |
-                 Public Contract
+                    CMS / Host Page
+                          |
+                          v
+                    Widget Manifest
+                          |
+                          v
+                     Shared Runtime
+                          |
+                 +--------+--------+
+                 |        |        |
+                 v        v        v
+             Vue Widget React   Other Frameworks
+                 |        |        |
+                 +--------+--------+
+                          |
+                    Public Contract
+                          |
+                          v
+                  Widget Lifecycle
+                          |
+                          v
+                    Shadow DOM
+                    /         \
+               CSS Styles   Framework App
 ```
 
 The public contract defines how a widget is mounted and how its resources are released. The runtime does not need to know the framework used internally by a widget.
 
 Each widget is registered by name and loaded from its configured JavaScript entry.
+
+The runtime creates an independent Shadow Root for each widget instance. Its CSS resources are loaded inside that root, helping prevent global styles from the host page or other widgets from affecting its internal elements.
 
 ## Public Widget Contract
 
@@ -107,13 +120,17 @@ export interface WidgetModule {
 
 **Mount**
 
-The runtime provides an HTML element and optional configuration. The widget initializes its framework application inside that element.
+The runtime provides an HTML element and optional configuration. The widget initializes its framework application inside the container created within its Shadow Root.
+
+Widget styles are loaded before the framework application is mounted.
 
 **Unmount**
 
-The widget releases its framework resources and removes the content it owns. The runtime removes the widget from its mounted-widget registry, including when the widget's `unmount()` method throws.
+The widget releases its framework resources and removes its content. The runtime removes the widget from its mounted-widget registry, including when the widget's `unmount()` method throws.
 
 Widgets should not remove content owned by the host page or other widgets.
+
+The public contract remains framework-agnostic and does not expose Shadow DOM implementation details to individual widget projects.
 
 ## Framework Support
 
@@ -153,7 +170,8 @@ Example:
     {
       "name": "external-contact-widget",
       "description": "External Vue contact form",
-      "entry": "/widgets/external-contact-widget.js"
+      "entry": "/widgets/external-contact-widget.js",
+      "styles": ["/widgets/external-contact-widget.css"]
     },
     {
       "name": "external-react-widget",
@@ -166,7 +184,26 @@ Example:
 
 Each entry identifies a widget by its name and specifies the URL of its JavaScript bundle.
 
+The optional `styles` property declares CSS resources associated with a widget. These styles are loaded inside the widget's Shadow Root before mounting.
+
+Stylesheet loading is cached per Shadow Root to avoid unnecessary duplicate requests when a widget is mounted again in the same host element.
+
 The manifest is the integration point between independently built widgets and the central runtime.
+
+## Shadow DOM and CSS Isolation
+
+The runtime uses the browser's Shadow DOM API to create an isolated DOM tree for each widget.
+
+This provides several benefits:
+
+- Global CSS selectors from the host page do not directly affect internal widget elements.
+- Widget styles do not directly affect other widgets or the host page.
+- Each widget can maintain its own CSS resources.
+- Different frameworks can coexist without sharing a global styling scope.
+
+Each widget receives a container inside its Shadow Root. Its CSS files are loaded into that root through the manifest's `styles` property.
+
+Shadow DOM does not prevent inherited properties or CSS custom properties from passing through the host element. Therefore, it provides style isolation, but not a complete separation of every possible styling influence.
 
 ## Automatic Mounting and Configuration
 
@@ -182,9 +219,11 @@ Example:
 
 The widget name must match an entry in the manifest and the runtime's registered widget definitions.
 
-Configuration can be supplied through `data-initial-value` or as a JSON object in `data-widget-config`.
+Configuration can be supplied through HTML data attributes or as a JSON object in `data-widget-config`.
 
 Invalid JSON and non-object JSON configurations are rejected.
+
+The automatic mounting process is asynchronous because widget bundles and their CSS resources must be loaded before mounting.
 
 ## Error Handling and Lifecycle Management
 
@@ -192,8 +231,10 @@ The runtime includes safeguards for common integration failures:
 
 - Rejects attempts to mount multiple widgets on the same element.
 - Rejects mounting when a widget is not registered.
-- Cleans up the element when mounting fails.
-- Removes widget registrations from the mounted-widget tracking structures during cleanup.
+- Creates an independent Shadow Root for each widget instance.
+- Loads declared CSS resources before mounting.
+- Cleans up the widget container when mounting fails.
+- Removes widget instances from mounted-widget tracking structures during cleanup.
 - Continues attempting to unmount other widgets when one widget fails.
 - Allows an element to be reused after a mounting failure or cleanup.
 - Includes unit tests for registration, mounting, configuration, and lifecycle behavior.
@@ -220,6 +261,7 @@ Vue-Enterprise-Widgets/
 │       ├── calculator.js
 │       ├── contact-form.js
 │       ├── external-contact-widget.js
+│       ├── external-contact-widget.css
 │       └── external-react-widget.js
 ├── src/
 │   ├── runtime/
@@ -229,7 +271,7 @@ Vue-Enterprise-Widgets/
 └── package.json
 ```
 
-The Vue and React external examples are developed in separate projects. Their generated bundles are copied into the central project's `public/widgets/` directory for the current integration demonstration.
+The Vue and React external examples are developed in separate projects. Their generated bundles and associated CSS files are copied into the central project's `public/widgets/` directory for the current integration demonstration.
 
 The exact project structure may evolve as distribution and deployment workflows are improved.
 
@@ -242,6 +284,7 @@ The exact project structure may evolve as distribution and deployment workflows 
 - JavaScript
 - Vue 3
 - React
+- Shadow DOM
 
 ### Testing and Code Quality
 
@@ -271,6 +314,14 @@ npm run build:widget
 
 These commands validate TypeScript, execute the unit tests, build the central application, and generate the configured widget bundles.
 
+To run the local demonstration:
+
+```bash
+npm run dev
+```
+
+Open `widget-demo.html` using the local Vite development server.
+
 Each external widget project must also be built independently.
 
 ### External Widget Integration Workflow
@@ -279,11 +330,12 @@ Each external widget project must also be built independently.
 2. Install `@cms-widget-platform/widget-contract`.
 3. Implement and export `widgetModule`.
 4. Configure Vite to generate an ES module bundle.
-5. Ensure framework dependencies are available to the bundle or host environment.
-6. Copy the generated JavaScript bundle into `public/widgets/` for the current local demonstration.
-7. Add the widget entry to `manifest.json`.
-8. Add a matching `data-widget` element to the demo page.
-9. Verify mounting, interaction, and cleanup in the browser.
+5. Generate the widget's CSS resources when required.
+6. Ensure framework dependencies are available to the bundle or host environment.
+7. Copy the generated JavaScript and CSS files into `public/widgets/` for the current local demonstration.
+8. Add the widget entry and optional styles to `manifest.json`.
+9. Add a matching `data-widget` element to the demo page.
+10. Verify mounting, interaction, style isolation, and cleanup in the browser.
 
 For the current local setup, the public contract package is built and packaged as a local `.tgz` archive before being installed into the external projects.
 
@@ -291,14 +343,14 @@ For the current local setup, the public contract package is built and packaged a
 
 The following capabilities remain outside the current implementation:
 
-- Separate CSS files declared and loaded through the manifest.
 - Automatic cleanup when a host page removes a widget container.
 - A complete independent publishing and versioning workflow for external bundles.
 - Automated deployment and distribution.
 - Production CMS integration validation.
 - Comprehensive end-to-end and performance testing.
+- Complete isolation of inherited CSS properties and custom properties.
 
-Widget styles are not yet managed by a dedicated manifest field. The current examples demonstrate functional integration, not complete CSS isolation from host-page styles.
+The current implementation demonstrates CSS loading and Shadow DOM isolation, but not every widget has a dedicated visual design yet.
 
 ## Roadmap
 
@@ -308,7 +360,10 @@ Widget styles are not yet managed by a dedicated manifest field. The current exa
 - [x] Build and integrate an external Vue widget.
 - [x] Build and integrate an external React widget.
 - [x] Add unit tests for runtime behavior and failure handling.
-- [ ] Add manifest-based CSS loading and deduplication.
+- [x] Add manifest-based CSS loading.
+- [x] Implement Shadow DOM-based style isolation.
+- [x] Support asynchronous widget mounting and stylesheet loading.
+- [ ] Add dedicated styles to all example widgets.
 - [ ] Implement automatic cleanup for removed DOM containers.
 - [ ] Improve external bundle publishing and versioning.
 - [ ] Add end-to-end integration tests.
@@ -317,8 +372,8 @@ Widget styles are not yet managed by a dedicated manifest field. The current exa
 
 ## Status
 
-**Work in progress — core cross-framework integration demonstrated.**
+**Work in progress — cross-framework integration and Shadow DOM isolation demonstrated.**
 
-The current proof of concept successfully runs Vue and React widgets on the same page through a shared public contract and manifest, without requiring framework-specific changes to the central runtime.
+The current proof of concept successfully runs Vue and React widgets on the same page through a shared public contract and manifest. The runtime manages their lifecycle asynchronously and provides independent Shadow Roots for widget instances.
 
-The next iterations will focus on styling, lifecycle automation, distribution, and production readiness.
+The next iterations will focus on consistent widget styling, lifecycle automation, distribution, and production readiness.

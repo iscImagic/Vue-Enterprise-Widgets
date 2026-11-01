@@ -1,5 +1,6 @@
 import type { WidgetMountOptions } from './widget-contract'
 import { getWidgetDefinition } from './widget-registry'
+import { loadWidgetStyles } from './load-widget-styles'
 
 export interface MountedWidget {
   name: string
@@ -8,13 +9,14 @@ export interface MountedWidget {
 
 const mountedWidgets = new Set<MountedWidget>()
 const mountedElements = new WeakMap<HTMLElement, MountedWidget>()
+const mountingElements = new WeakSet<HTMLElement>()
 
-export function mountWidget(
+export async function mountWidget(
   name: string,
   element: HTMLElement,
   options?: WidgetMountOptions,
-): () => void {
-  if (mountedElements.has(element)) {
+): Promise<() => void> {
+  if (mountedElements.has(element) || mountingElements.has(element)) {
     throw new Error('An element cannot host more than one mounted widget.')
   }
 
@@ -24,31 +26,43 @@ export function mountWidget(
     throw new Error(`Widget "${name}" is not registered.`)
   }
 
-  let instance: ReturnType<typeof definition.module.mount>
+  mountingElements.add(element)
+
+  const shadowRoot = element.shadowRoot ?? element.attachShadow({ mode: 'open' })
+  const container = document.createElement('div')
 
   try {
-    instance = definition.module.mount(element, options)
+    shadowRoot.replaceChildren()
+
+    await loadWidgetStyles(definition.styles ?? [], shadowRoot)
+
+    shadowRoot.appendChild(container)
+
+    const instance = definition.module.mount(container, options)
+
+    const mountedWidget: MountedWidget = {
+      name,
+      unmount: () => {
+        try {
+          instance.unmount()
+        } finally {
+          shadowRoot.replaceChildren()
+          mountedWidgets.delete(mountedWidget)
+          mountedElements.delete(element)
+        }
+      },
+    }
+
+    mountedWidgets.add(mountedWidget)
+    mountedElements.set(element, mountedWidget)
+
+    return mountedWidget.unmount
   } catch (error) {
-    element.replaceChildren()
+    shadowRoot.replaceChildren()
     throw error
+  } finally {
+    mountingElements.delete(element)
   }
-
-  const mountedWidget: MountedWidget = {
-    name,
-    unmount: () => {
-      try {
-        instance.unmount()
-      } finally {
-        mountedWidgets.delete(mountedWidget)
-        mountedElements.delete(element)
-      }
-    },
-  }
-
-  mountedWidgets.add(mountedWidget)
-  mountedElements.set(element, mountedWidget)
-
-  return mountedWidget.unmount
 }
 
 export function getMountedWidgets(): MountedWidget[] {

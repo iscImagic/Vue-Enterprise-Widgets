@@ -14,7 +14,8 @@
     {
       "name": "external-contact-widget",
       "description": "Formulario de contacto desarrollado en un proyecto externo",
-      "entry": "/widgets/external-contact-widget.js"
+      "entry": "/widgets/external-contact-widget.js",
+      "styles": ["/widgets/external-contact-widget.css"]
     },
     {
       "name": "external-react-widget",
